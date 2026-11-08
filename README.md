@@ -1,3 +1,49 @@
+# Nuvio TV B2
+
+Veränderte Fassung von [Nuvio TV](https://github.com/NuvioMedia/NuvioTVSmart) (GPL-3.0),
+abgestimmt auf den **LG OLED55B29LA** mit **webOS TV 23 (8.3.0, Chromium 94)**.
+Installiert sich als eigene App `space.nuvio.webosb2` neben der offiziellen Nuvio-App.
+
+## Installation (Homebrew Channel)
+
+Im Homebrew Channel unter _Einstellungen → Repositories_ diese Adresse hinzufügen:
+
+```
+https://raw.githubusercontent.com/MasterOfDeaster/nuvio-tv-b2/main/webosbrew/apps.json
+```
+
+Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.9_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.9_all.ipk)
+
+## Was anders ist
+
+- **Sparsamer Modus für LG-Geräte mit α5/α7-Chip** (OLED A, OLED B1–B3, UHD/NanoCell-LCD),
+  erkannt am Modellnamen. Die offizielle App stuft den B2 (α7 Gen5) nach Baujahr als „modern“
+  ein und zeigt alle Effekte. Hier bekommt er:
+  - keine Unschärfe-Ebenen (backdrop-filter) hinter der Seitenleiste,
+  - nur eine Hintergrundbild-Ebene statt Überblendung zweier Vollbilder,
+  - kurze Einblendung statt gleitender Seitenwechsel,
+  - sofortiges Zuklappen der Poster,
+  - gebremste Wiederholung beim Gedrückthalten der Pfeiltasten, damit sich keine Eingaben stauen.
+    Das Layout bleibt das moderne, Funktionen fallen nicht weg.
+- **Für Chromium 94 übersetzt** statt für Chromium 56 (Haupt-Bundle 3,73 → 3,48 MB,
+  Polyfills 153 → 100 KB). Ältere Fernseher bekommen beim Start eine Meldung.
+
+Die Änderungen stehen im zweiten Commit dieses Repos. Der erste ist der unveränderte Stand
+von NuvioTVSmart `bd73c02f7fa95542485ae108a1eb5f3cc63d3a66`.
+
+## Selbst bauen
+
+```bash
+curl -LO https://github.com/NuvioMedia/NuvioTVSmart/releases/download/1.3.9/NuvioTV-webOS-1.3.9.ipk
+python3 tools/build-nuvio-b2.py . NuvioTV-webOS-1.3.9.ipk out
+```
+
+Die offizielle Release-IPK liefert nur `nuvio.env.js` (öffentliche Dienst-Schlüssel), die im Quellcode fehlt.
+
+---
+
+## Original-README von Nuvio TV
+
 <div align="center">
 
   <img src="assets/brand/app_logo_wordmark.png" alt="Nuvio" width="300" />
