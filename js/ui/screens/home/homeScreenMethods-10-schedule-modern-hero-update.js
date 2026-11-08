@@ -43,7 +43,11 @@ export function createHomeScreenMethods10() {
         }
         callback();
       };
-      const preloadDelay = Math.max(0, Math.min(120, delay - 80));
+      // Preloading 120 ms after focus decodes a full-screen backdrop and a logo
+      // for every card the user only passes while scrolling a row. Constrained
+      // TVs (alpha7 LG panels included) pay for each decode with dropped frames,
+      // so they only preload once focus has nearly settled.
+      const preloadDelay = this.isPerformanceConstrained() ? Math.max(0, delay - 100) : Math.max(0, Math.min(120, delay - 80));
       this.heroBackdropPreloadTimer = setTimeout(() => {
         this.heroBackdropPreloadTimer = null;
         waitForVerticalSettle(() => {

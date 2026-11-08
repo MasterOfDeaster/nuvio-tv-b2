@@ -254,10 +254,12 @@ function applyPerformanceMode() {
   const legacyWebOs = Platform.isWebOS() && tvRuntime.isLegacyTvRuntime;
   // Chromium 87 webOS also stalls when every Modern Home track is promoted
   // to a compositor layer. Keep this separate from API and motion policies.
+  // The same applies to the alpha5/alpha7 LG sets of later generations: an
+  // OLED B2 updated to webOS 23 (Chromium 94) has the webOS 22 GPU.
   const unpromotedHomeTracks =
     Platform.isWebOS() &&
-    tvRuntime.chromiumMajorVersion > 0 &&
-    tvRuntime.chromiumMajorVersion <= 87;
+    ((tvRuntime.chromiumMajorVersion > 0 && tvRuntime.chromiumMajorVersion <= 87) ||
+      Boolean(tvRuntime.isConstrainedModel));
   const legacyWebOs38 = Platform.isWebOS() && webOsMajorVersion > 0 && webOsMajorVersion <= 3;
   // Keep the Tizen class as a platform-layout fallback; performance gating is
   // handled exclusively by the runtime profile above.

@@ -20,6 +20,10 @@ repo, official_ipk, out = (os.path.abspath(a) for a in sys.argv[1:4])
 here = os.path.dirname(os.path.abspath(__file__))
 OLD, NEW = 'space.nuvio.webos', 'space.nuvio.webosb2'
 CHROMIUM = '94'
+# Bump for every B2 build of the same upstream version. The app version becomes
+# MAJOR.MINOR.(PATCH*100 + B2_REVISION), e.g. upstream 1.3.9 + revision 2 = 1.3.902,
+# so the Homebrew Channel offers each B2 build as an update.
+B2_REVISION = 2
 work = os.path.join(out, 'work')
 shutil.rmtree(work, ignore_errors=True)
 os.makedirs(work)
@@ -85,12 +89,15 @@ for root, _, files in os.walk(stage):
 ai_path = os.path.join(app_dst, 'appinfo.json')
 ai = json.load(open(ai_path))
 ai['id'] = NEW
+major, minor, patch = (int(x) for x in version.split('.'))
+b2_version = f'{major}.{minor}.{patch * 100 + B2_REVISION}'
+ai['version'] = b2_version
 ai['title'] = 'Nuvio TV B2'
 ai['services'] = [s for s in services if s.endswith('.service') and 'plugin' not in s]
 json.dump(ai, open(ai_path, 'w'), indent=2)
 
 with open(os.path.join(app_dst, 'NUVIO-B2-NOTICE.txt'), 'w') as f:
-    f.write(f'Nuvio TV B2: modified build of Nuvio TV {version} (GPL-3.0, '
+    f.write(f'Nuvio TV B2 {b2_version}: modified build of Nuvio TV {version} (GPL-3.0, '
             'https://github.com/NuvioMedia/NuvioTVSmart), tuned for LG OLED B2 / webOS TV 23. '
             'Source: https://github.com/MasterOfDeaster/nuvio-tv-b2\n')
 

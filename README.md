@@ -12,7 +12,7 @@ Im Homebrew Channel unter _Einstellungen → Repositories_ diese Adresse hinzuf�
 https://raw.githubusercontent.com/MasterOfDeaster/nuvio-tv-b2/main/webosbrew/apps.json
 ```
 
-Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.9_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.9_all.ipk)
+Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.902_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.902_all.ipk)
 
 ## Was anders ist
 
@@ -25,10 +25,13 @@ Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.9_all.ipk`
   - sofortiges Zuklappen der Poster,
   - gebremste Wiederholung beim Gedrückthalten der Pfeiltasten, damit sich keine Eingaben stauen.
     Das Layout bleibt das moderne, Funktionen fallen nicht weg.
+- **Ruhiger beim Durchblättern:** Hintergrundbild und Titel-Logo der Startseite werden erst geladen,
+  wenn der Fokus kurz stehen bleibt, nicht mehr für jedes Poster, über das man nur hinwegscrollt.
+  Die Reihen bekommen wie auf webOS 22 keine eigene erzwungene Grafikebene mehr.
 - **Für Chromium 94 übersetzt** statt für Chromium 56 (Haupt-Bundle 3,73 → 3,48 MB,
   Polyfills 153 → 100 KB). Ältere Fernseher bekommen beim Start eine Meldung.
 
-Die Änderungen stehen im zweiten Commit dieses Repos. Der erste ist der unveränderte Stand
+Die Änderungen stehen in den Commits nach dem ersten. Der erste ist der unveränderte Stand
 von NuvioTVSmart `bd73c02f7fa95542485ae108a1eb5f3cc63d3a66`.
 
 ## Selbst bauen
