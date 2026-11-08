@@ -19,6 +19,40 @@ const WEBOS_RELEASE_YEARS = Object.freeze({
 });
 let cachedProfile = null;
 
+// LG sells each year's sets on several chips. The entry and mid chips
+// (alpha5 / alpha7) run the same webOS and Chromium as the flagship alpha9,
+// so the year/Chromium policy below rates them as modern, but their CPU and
+// GPU are much slower: blur layers, crossfading full-screen artwork and
+// sliding route animations drop frames there. Treat those model lines as
+// performance-constrained. They keep the modern layout (not legacy).
+//   OLED A-series (all years) and B-series up to B3 (2021-2023, alpha7)
+//   UHD/FHD LCD lines UN/UP/UQ/UR/UT/UA/LM/LQ and NanoCell (alpha5/alpha7)
+const LG_CONSTRAINED_MODEL_PATTERNS = Object.freeze([
+  /^OLED\d{2,3}(?:A\d|B[1-3])/i,
+  /^\d{2,3}(?:UN|UP|UQ|UR|UT|UA|LM|LQ|NANO)\d/i
+]);
+
+function readWebOsModelName() {
+  const sources = [globalThis.webOSSystem?.deviceInfo, globalThis.PalmSystem?.deviceInfo];
+  for (const source of sources) {
+    if (!source) continue;
+    try {
+      const info = typeof source === "string" ? JSON.parse(source) : source;
+      const model = String(info?.modelName || info?.model_name || "").trim();
+      if (model) return model;
+    } catch (_) {
+      const match = String(source).match(/"?model_?name"?\s*[:=]\s*"?([A-Za-z0-9.-]+)/i);
+      if (match?.[1]) return match[1];
+    }
+  }
+  return "";
+}
+
+export function isLgConstrainedModel(modelName) {
+  const model = String(modelName || "").trim();
+  return Boolean(model) && LG_CONSTRAINED_MODEL_PATTERNS.some((pattern) => pattern.test(model));
+}
+
 function parseVersionParts(value) {
   const match = String(value || "")
     .trim()
@@ -134,8 +168,12 @@ export function getTvRuntimePerformanceProfile({ forceRefresh = false } = {}) {
   }
 
   let tvYear = 0;
+  let modelName = "";
+  let isConstrainedModel = false;
 
   if (isWebOS) {
+    modelName = readWebOsModelName();
+    isConstrainedModel = isLgConstrainedModel(modelName);
     tvYear = getWebOsReleaseYear(readWebOsMajorVersion(), chromiumMajorVersion);
   } else if (isTizen) {
     const capabilities = TizenCapabilities.get();
@@ -155,11 +193,13 @@ export function getTvRuntimePerformanceProfile({ forceRefresh = false } = {}) {
     isTvRuntime: true,
     platform: isWebOS ? "webos" : "tizen",
     tvYear,
+    modelName,
+    isConstrainedModel,
     chromiumMajorVersion,
     tvYearKnown,
     chromiumVersionKnown,
     isLegacyTvRuntime,
-    isPerformanceConstrained: Boolean(isLegacyTvRuntime)
+    isPerformanceConstrained: Boolean(isLegacyTvRuntime || isConstrainedModel)
   });
   return cachedProfile;
 }
