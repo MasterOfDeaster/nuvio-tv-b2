@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 const { Platform } = await import("../js/platform/index.js");
 const {
   normalizeTmdbBackdropUrl,
+  normalizeTmdbCardBackdropUrl,
+  normalizeTmdbLogoUrl,
   normalizeTmdbPosterUrl,
   preferredTmdbCardPosterSize,
   resetPreferredTmdbCardPosterSizeForTests
@@ -209,5 +211,47 @@ test("the card poster size is computed once until reset", () => {
     assert.equal(preferredTmdbCardPosterSize(), "w342", "cached until reset");
     resetPreferredTmdbCardPosterSizeForTests();
     assert.equal(preferredTmdbCardPosterSize(), "w500");
+  });
+});
+
+const W1280_BACKDROP = "https://image.tmdb.org/t/p/w1280/backdrop.jpg";
+const ORIGINAL_LOGO = "https://image.tmdb.org/t/p/original/logo.png";
+
+for (const platform of ["tizen", "webos"]) {
+  test(`${platform} at one device pixel per CSS pixel serves w500 card backdrops and logos`, () => {
+    withRuntime({ platform, offscreenCanvas: true, devicePixelRatio: 2 }, () => {
+      const W500_BACKDROP = "https://image.tmdb.org/t/p/w500/backdrop.jpg";
+      assert.equal(normalizeTmdbCardBackdropUrl(ORIGINAL_BACKDROP), W500_BACKDROP);
+      assert.equal(normalizeTmdbCardBackdropUrl(W1280_BACKDROP), W500_BACKDROP);
+      assert.equal(
+        normalizeTmdbCardBackdropUrl("https://image.tmdb.org/t/p/w780/backdrop.jpg"),
+        W500_BACKDROP
+      );
+      assert.equal(normalizeTmdbLogoUrl(ORIGINAL_LOGO), "https://image.tmdb.org/t/p/w500/logo.png");
+      // The hero keeps its full-size source.
+      assert.equal(normalizeTmdbBackdropUrl(ORIGINAL_BACKDROP), W1280_BACKDROP);
+    });
+  });
+
+  test(`${platform} on a 4K-painting panel keeps hero-sized card backdrops and original logos`, () => {
+    withRuntime({ platform, offscreenCanvas: true, screenWidth: 3840, devicePixelRatio: 2 }, () => {
+      assert.equal(normalizeTmdbCardBackdropUrl(ORIGINAL_BACKDROP), W1280_BACKDROP);
+      assert.equal(normalizeTmdbLogoUrl(ORIGINAL_LOGO), ORIGINAL_LOGO);
+    });
+  });
+}
+
+test("browsers keep hero-sized card backdrops and leave other hosts untouched", () => {
+  withRuntime({ platform: null }, () => {
+    assert.equal(normalizeTmdbCardBackdropUrl(ORIGINAL_BACKDROP), W1280_BACKDROP);
+    assert.equal(normalizeTmdbLogoUrl(ORIGINAL_LOGO), ORIGINAL_LOGO);
+  });
+  withRuntime({ platform: "webos" }, () => {
+    assert.equal(normalizeTmdbCardBackdropUrl(METAHUB_POSTER), METAHUB_POSTER);
+    assert.equal(
+      normalizeTmdbLogoUrl("https://cdn.example.org/t/p/original/logo.png"),
+      "https://cdn.example.org/t/p/original/logo.png"
+    );
+    assert.equal(normalizeTmdbCardBackdropUrl(""), "");
   });
 });

@@ -302,6 +302,12 @@
 .legacy-webos .home-screen-shell.home-layout-modern .home-track,
 .webos-unpromoted-home-tracks .home-screen-shell.home-layout-modern .home-track {
   transform: none;
+  /* Without the transform the track is a scroller but no stacking context, so
+     Chromium 87-94 composites every positioned card child (artwork, badge,
+     progress bar) as its own layer to scroll it: about 440 layers and 250 MB of
+     tiles on Home, measured on an OLED B2. Isolation makes each track paint its
+     cards into its own scrolling contents layer again (about 40 layers). */
+  isolation: isolate;
 }
 
 .performance-constrained .home-content-card.focused,

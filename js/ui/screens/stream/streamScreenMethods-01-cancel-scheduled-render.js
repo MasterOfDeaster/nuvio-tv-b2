@@ -8,6 +8,7 @@ export function createStreamScreenMethods01() {
     StreamBadgeSettingsStore,
     buildStreamVirtualModel,
     getStreamVirtualWindow,
+    canKeepStreamVirtualWindow,
     STREAM_VIRTUALIZATION_DEFAULT_ROW_EXTENT,
     STREAM_VIRTUALIZATION_MIN_WINDOW,
     STREAM_VIRTUALIZATION_OVERSCAN_PX,
@@ -278,6 +279,9 @@ export function createStreamScreenMethods01() {
         Math.abs(previousWindow.topSpacer - virtualWindow.topSpacer) < 0.5 &&
         Math.abs(previousWindow.bottomSpacer - virtualWindow.bottomSpacer) < 0.5;
       if (!force && sameWindow && windowNode.childElementCount) {
+        return false;
+      }
+      if (!force && windowNode.childElementCount && canKeepStreamVirtualWindow(previousWindow, virtualWindow, model)) {
         return false;
       }
 

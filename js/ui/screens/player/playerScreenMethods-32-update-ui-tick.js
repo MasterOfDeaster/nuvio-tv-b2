@@ -289,13 +289,13 @@ export function createPlayerScreenMethods32() {
         this.scheduleSeekPreviewCommit();
       }
     },
-    scheduleSeekPreviewCommit() {
+    scheduleSeekPreviewCommit(delayMs = 1000) {
       if (this.seekCommitTimer) {
         clearTimeout(this.seekCommitTimer);
       }
       this.seekCommitTimer = setTimeout(() => {
         this.commitSeekPreview();
-      }, 1000);
+      }, delayMs);
     },
     commitSeekPreview() {
       if (this.isLivePlayback()) {

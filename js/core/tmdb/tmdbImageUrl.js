@@ -35,6 +35,7 @@ export function preferredTmdbCardPosterSize() {
 
 export function resetPreferredTmdbCardPosterSizeForTests() {
   cachedCardPosterSize = null;
+  cachedSmallCardBackdrops = null;
 }
 
 /**
@@ -47,6 +48,49 @@ export function normalizeTmdbBackdropUrl(value) {
     return normalized;
   }
   return normalized.replace(/(\/t\/p\/)(?:original|w780)\//i, "$1w1280/");
+}
+
+// Landscape cards (Continue Watching, landscape posters) are about 415 CSS px
+// wide. A TV that paints at one device pixel per CSS pixel is covered by w500;
+// w1280 decodes 6.5x the pixels and the GPU image cache then rescales each one
+// on a raster worker, which on an LG alpha5/alpha7 set blocks the next commit
+// for several hundred milliseconds while a row scrolls. 4K-painting panels and
+// non-TV browsers keep the hero-sized source.
+const TMDB_CARD_BACKDROP_SIZE = "w500";
+let cachedSmallCardBackdrops = null;
+
+function tvCanUseSmallCardBackdrops() {
+  if (cachedSmallCardBackdrops === null) {
+    const isTv = Boolean(Platform.isTizen?.() || Platform.isWebOS?.());
+    cachedSmallCardBackdrops = isTv && getTvArtworkPixelRatio() === 1;
+  }
+  return cachedSmallCardBackdrops;
+}
+
+export function normalizeTmdbCardBackdropUrl(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized || !TMDB_IMAGE_HOST_PATTERN.test(normalized)) {
+    return normalized;
+  }
+  if (!tvCanUseSmallCardBackdrops()) {
+    return normalizeTmdbBackdropUrl(normalized);
+  }
+  return normalized.replace(
+    /(\/t\/p\/)(?:original|w1280|w780)\//i,
+    `$1${TMDB_CARD_BACKDROP_SIZE}/`
+  );
+}
+
+// Title logos (clearlogos) are drawn at most 440x200 CSS px, but addons send
+// them as /original/ PNGs that are often 2000-4000 px wide. Decoding one of
+// those took up to 2.5 s on an OLED B2 raster worker, and Home preloads the
+// next hero logo on nearly every focus step. TMDB serves logos at w500.
+export function normalizeTmdbLogoUrl(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized || !TMDB_IMAGE_HOST_PATTERN.test(normalized) || !tvCanUseSmallCardBackdrops()) {
+    return normalized;
+  }
+  return normalized.replace(/(\/t\/p\/)original\//i, "$1w500/");
 }
 
 export function normalizeTmdbPosterUrl(value) {

@@ -2,6 +2,8 @@
 import { canResolveMediaServerStream } from "../../../data/mediaserver/mediaServerRepository.js";
 import * as internals from "./playerScreenContext.js";
 
+const WEBOS_TAP_SEEK_SETTLE_MS = 450;
+
 export function createPlayerScreenMethods72() {
   const {
     PlayerController,
@@ -47,7 +49,16 @@ export function createPlayerScreenMethods72() {
           !this.pauseOverlayVisible
         ) {
           event?.preventDefault?.();
-          this.commitSeekPreview();
+          if (Environment.isWebOS() && !event?.repeat) {
+            // The webOS media pipeline restarts on every seek (about 2 s on an
+            // OLED B2 even inside the buffer), so four quick taps used to queue
+            // four restarts. Give a following tap a short window to add to the
+            // preview target (beginSeekPreview builds on seekPreviewSeconds) and
+            // seek once when the taps stop.
+            this.scheduleSeekPreviewCommit(WEBOS_TAP_SEEK_SETTLE_MS);
+          } else {
+            this.commitSeekPreview();
+          }
         }
         return;
       }

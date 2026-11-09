@@ -196,6 +196,7 @@ import { hideHomeHeroRatings } from "./homeScreenHelpers-10-get-cached-continue-
 import { formatRuntimeText, extractReleaseDateText } from "./homeScreenHelpers-02-extract-release-date-text.js";
 import { normalizeContinueWatchingItem } from "./homeScreenHelpers-09-normalize-continue-watching-item.js";
 import { normalizeCatalogItem } from "./homeScreenHelpers-08-partition-continue-watching-rows.js";
+import { normalizeTmdbLogoUrl } from "../../../core/tmdb/tmdbImageUrl.js";
 
 export function buildHeroDisplayModel(hero, layoutMode) {
   if (isCollectionFolderItem(hero)) {
@@ -203,7 +204,7 @@ export function buildHeroDisplayModel(hero, layoutMode) {
     return {
       title: normalized?.heroTitle || normalized?.name || normalized?.collectionTitle || "Untitled",
       description: " ",
-      logo: firstNonEmpty(normalized?.titleLogoUrl, normalized?.logo),
+      logo: normalizeTmdbLogoUrl(firstNonEmpty(normalized?.titleLogoUrl, normalized?.logo)),
       backdrop: firstNonEmpty(normalized?.heroBackdropUrl, normalized?.background, normalized?.backdrop, normalized?.poster),
       backdropFallbacks: buildHeroBackdropSources(normalized).slice(1),
       metaPrimary: [],
@@ -255,7 +256,7 @@ export function buildHeroDisplayModel(hero, layoutMode) {
     mdbListMarkup,
     title: hero?.name || "Untitled",
     description: firstNonEmpty(hero?.description) || " ",
-    logo: firstNonEmpty(hero?.logo),
+    logo: normalizeTmdbLogoUrl(firstNonEmpty(hero?.logo)),
     backdrop: buildHeroBackdropSources(hero)[0] || "",
     backdropFallbacks: buildHeroBackdropSources(hero).slice(1),
     metaPrimary: metaPrimary.filter(Boolean),
@@ -272,7 +273,7 @@ export function buildModernHeroPresentation(hero) {
     }
     return {
       title: normalizedCollection.heroTitle || normalizedCollection.name || normalizedCollection.rawTitle || "",
-      logo: firstNonEmpty(normalizedCollection.titleLogoUrl, normalizedCollection.logo),
+      logo: normalizeTmdbLogoUrl(firstNonEmpty(normalizedCollection.titleLogoUrl, normalizedCollection.logo)),
       description: "",
       backdrop: buildHeroBackdropSources(normalizedCollection)[0] || "",
       backdropFallbacks: buildHeroBackdropSources(normalizedCollection).slice(1),
@@ -336,7 +337,7 @@ export function buildModernHeroPresentation(hero) {
   return {
     mdbListMarkup,
     title: normalized.name || "Untitled",
-    logo: firstNonEmpty(normalized.logo),
+    logo: normalizeTmdbLogoUrl(firstNonEmpty(normalized.logo)),
     description: firstNonEmpty(isContinueWatchingHero ? normalized.episodeDescription : null, normalized.description) || "",
     backdrop: buildHeroBackdropSources(normalized)[0] || "",
     backdropFallbacks: buildHeroBackdropSources(normalized).slice(1),

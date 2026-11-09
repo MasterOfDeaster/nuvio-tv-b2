@@ -34,6 +34,7 @@ function cardStubs(onRead) {
     firstNonEmpty: (...values) => values.find(Boolean) || "",
     buildPosterSubtitle: () => "",
     normalizeTmdbBackdropUrl: (value) => value,
+    normalizeTmdbCardBackdropUrl: (value) => value,
     normalizeTmdbPosterUrl: (value) => value,
     isTitleItemWatched: () => false,
     renderTitleWatchedBadge: () => "",

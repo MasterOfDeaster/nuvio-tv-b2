@@ -270,15 +270,41 @@ export function normalizeLanguageNameText(value) {
     .trim();
 }
 
+// LANGUAGE_NAME_ALIASES is constant. Sorting its few hundred entries on every
+// call, for every subtitle, on every subtitle-dialog redraw cost ~400 ms per
+// key press in that dialog on an OLED B2. Sort once and remember results for
+// the labels seen (they repeat on every redraw).
+let sortedLanguageAliasEntries = null;
+const LANGUAGE_TEXT_CACHE_LIMIT = 1000;
+const inferredLanguageCodeCache = new Map();
+const inferredUniqueLanguageCodeCache = new Map();
+
+function getSortedLanguageAliasEntries() {
+  if (!sortedLanguageAliasEntries) {
+    sortedLanguageAliasEntries = Object.entries(LANGUAGE_NAME_ALIASES).sort((left, right) => right[0].length - left[0].length);
+  }
+  return sortedLanguageAliasEntries;
+}
+
+function rememberLanguageText(cache, key, result) {
+  if (cache.size >= LANGUAGE_TEXT_CACHE_LIMIT) {
+    cache.clear();
+  }
+  cache.set(key, result);
+  return result;
+}
+
 export function inferTrackLanguageCodeFromText(value) {
   const normalized = normalizeLanguageNameText(value);
   if (!normalized) {
     return "";
   }
+  if (inferredLanguageCodeCache.has(normalized)) {
+    return inferredLanguageCodeCache.get(normalized);
+  }
   const padded = ` ${normalized} `;
-  const aliasEntries = Object.entries(LANGUAGE_NAME_ALIASES).sort((left, right) => right[0].length - left[0].length);
-  const match = aliasEntries.find(([name]) => padded.includes(` ${name} `));
-  return match?.[1] || "";
+  const match = getSortedLanguageAliasEntries().find(([name]) => padded.includes(` ${name} `));
+  return rememberLanguageText(inferredLanguageCodeCache, normalized, match?.[1] || "");
 }
 
 export function inferUniqueTrackLanguageCodeFromText(value) {
@@ -286,15 +312,20 @@ export function inferUniqueTrackLanguageCodeFromText(value) {
   if (!normalized) {
     return "";
   }
+  if (inferredUniqueLanguageCodeCache.has(normalized)) {
+    return inferredUniqueLanguageCodeCache.get(normalized);
+  }
+  return rememberLanguageText(inferredUniqueLanguageCodeCache, normalized, inferUniqueCodeFromNormalized(normalized));
+}
+
+function inferUniqueCodeFromNormalized(normalized) {
   const padded = ` ${normalized} `;
   const matchedCodes = new Set();
-  Object.entries(LANGUAGE_NAME_ALIASES)
-    .sort((left, right) => right[0].length - left[0].length)
-    .forEach(([name, code]) => {
-      if (padded.includes(` ${name} `)) {
-        matchedCodes.add(code);
-      }
-    });
+  getSortedLanguageAliasEntries().forEach(([name, code]) => {
+    if (padded.includes(` ${name} `)) {
+      matchedCodes.add(code);
+    }
+  });
   if (matchedCodes.size === 1) {
     return Array.from(matchedCodes)[0];
   }

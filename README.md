@@ -12,7 +12,7 @@ Im Homebrew Channel unter _Einstellungen → Repositories_ diese Adresse hinzuf�
 https://raw.githubusercontent.com/MasterOfDeaster/nuvio-tv-b2/main/webosbrew/apps.json
 ```
 
-Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.902_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.902_all.ipk)
+Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.903_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.903_all.ipk)
 
 ## Was anders ist
 
@@ -28,6 +28,16 @@ Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.902_all.ip
 - **Ruhiger beim Durchblättern:** Hintergrundbild und Titel-Logo der Startseite werden erst geladen,
   wenn der Fokus kurz stehen bleibt, nicht mehr für jedes Poster, über das man nur hinwegscrollt.
   Die Reihen bekommen wie auf webOS 22 keine eigene erzwungene Grafikebene mehr.
+- **Auf dem OLED B2 gemessen und entlastet (1.3.903):**
+  - Startseite: die Reihen sind wieder eigene Stapelkontexte (`isolation`), dadurch 40 statt
+    rund 440 Grafikebenen. Karten laden `w500`- statt `w1280`-Bilder, Titel-Logos `w500`
+    statt Originalgröße, große WebP-Kacheln werden im Worker verkleinert.
+    Beim Blättern ca. 51 statt 33 Bilder pro Sekunde.
+  - Streamliste: Badge-Bilder als `blob:`-URL statt jedes Mal Base64 zu parsen, die
+    virtuelle Liste baut sich nur noch am Rand neu auf. Lange Listen ca. 42 statt 7 Bilder
+    pro Sekunde.
+  - Player: schnelles Mehrfach-Spulen wird zu einem Sprung zusammengefasst,
+    Untertitel-Dialog reagiert schneller.
 - **Für Chromium 94 übersetzt** statt für Chromium 56 (Haupt-Bundle 3,73 → 3,48 MB,
   Polyfills 153 → 100 KB). Ältere Fernseher bekommen beim Start eine Meldung.
 
@@ -42,6 +52,7 @@ python3 tools/build-nuvio-b2.py . NuvioTV-webOS-1.3.9.ipk out
 ```
 
 Die offizielle Release-IPK liefert nur `nuvio.env.js` (öffentliche Dienst-Schlüssel), die im Quellcode fehlt.
+Das Skript läuft unter macOS, Linux und Windows (unter Windows `python` statt `python3`).
 
 ---
 

@@ -148,6 +148,12 @@ export function getStreamVirtualWindow(
     }
   }
 
+  // The rows that must be mounted right now (viewport, overscan and focus),
+  // before the minimum-window expansion below. A caller can keep an already
+  // mounted window as long as it still covers this range.
+  const neededStart = start;
+  const neededEnd = end;
+
   if (end - start + 1 < safeMinWindow) {
     const anchor = preferred >= 0 ? preferred : Math.floor((start + end) / 2);
     const centeredStart = anchor - Math.floor(safeMinWindow / 2);
@@ -160,8 +166,37 @@ export function getStreamVirtualWindow(
     end,
     topSpacer: Math.max(0, Number(offsets[start] || 0)),
     bottomSpacer: Math.max(0, totalExtent - Number(offsets[end + 1] || totalExtent)),
-    totalExtent
+    totalExtent,
+    neededStart,
+    neededEnd
   };
+}
+
+/**
+ * Whether a mounted window can stay as it is: same row geometry (start offset
+ * and total extent unchanged) and it still covers every row the new window
+ * needs. Re-rendering the whole window on every focus move re-parsed about 20
+ * stream cards and their badges per D-pad press (~0.8 s on an OLED B2); with
+ * this the window only moves once the focus nears its edge.
+ */
+export function canKeepStreamVirtualWindow(previous, next, model) {
+  if (!previous || !next || !(previous.end >= previous.start)) {
+    return false;
+  }
+  const offsets = Array.isArray(model?.offsets) ? model.offsets : null;
+  const count = Array.isArray(model?.keys) ? model.keys.length : 0;
+  if (!offsets || previous.end >= count) {
+    return false;
+  }
+  if (Math.abs(Number(previous.totalExtent) - Number(next.totalExtent)) >= 0.5) {
+    return false;
+  }
+  if (Math.abs(Number(previous.topSpacer) - Number(offsets[previous.start] || 0)) >= 0.5) {
+    return false;
+  }
+  const neededStart = Number.isFinite(next.neededStart) ? next.neededStart : next.start;
+  const neededEnd = Number.isFinite(next.neededEnd) ? next.neededEnd : next.end;
+  return previous.start <= neededStart && previous.end >= neededEnd;
 }
 
 /**

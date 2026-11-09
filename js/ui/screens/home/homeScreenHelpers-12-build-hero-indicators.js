@@ -195,7 +195,7 @@ import { normalizeCatalogItem } from "./homeScreenHelpers-08-partition-continue-
 import { normalizeContinueWatchingItem } from "./homeScreenHelpers-09-normalize-continue-watching-item.js";
 import { isSeriesTypeForContinueWatching } from "./homeScreenHelpers-06-resolve-trailer-source.js";
 import { buildLazyImageAttributes } from "./homeScreenHelpers-14-get-home-grid-column-count.js";
-import { normalizeTmdbBackdropUrl, normalizeTmdbPosterUrl } from "../../../core/tmdb/tmdbImageUrl.js";
+import { normalizeTmdbBackdropUrl, normalizeTmdbCardBackdropUrl, normalizeTmdbPosterUrl } from "../../../core/tmdb/tmdbImageUrl.js";
 
 export function buildHeroIndicators(items = [], activeItem) {
   if (!Array.isArray(items) || items.length <= 1) {
@@ -324,7 +324,7 @@ export function renderContinueWatchingCard(item, index, options = {}) {
             hasAired
           }
         );
-  const normalizeCardImageUrl = cardStyle === "card" ? normalizeTmdbBackdropUrl : normalizeTmdbPosterUrl;
+  const normalizeCardImageUrl = cardStyle === "card" ? normalizeTmdbCardBackdropUrl : normalizeTmdbPosterUrl;
   const uniqueCardImageSources = uniqueNonEmptyValues(cardImageSources.map((source) => normalizeCardImageUrl(source)));
   const cardImage = uniqueCardImageSources[0] || "";
   const fallbackQueue = encodeHeroBackdropFallbacks(uniqueCardImageSources.slice(1));

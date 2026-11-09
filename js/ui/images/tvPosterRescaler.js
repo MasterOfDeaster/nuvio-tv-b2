@@ -14,8 +14,9 @@ import { getTvRuntimePerformanceProfile } from "../../platform/tvRuntimePerforma
 //
 // Rescaling must never change what the card looks like, so it is confined to
 // the cases where that can be guaranteed: the two object-fit values the home
-// cards actually use, and JPEG sources, which cannot carry transparency or
-// animation. Everything else loads exactly as it does today.
+// cards actually use, JPEG sources (no transparency or animation) and still
+// WebP sources (re-encoded as WebP, so alpha survives). Everything else loads
+// exactly as it does today.
 
 /** The object-fit values this module can reproduce exactly. */
 export function isRescalableArtworkFit(fit) {
@@ -67,9 +68,36 @@ export function isJpegHeader(bytes) {
   );
 }
 
+/**
+ * A still (non-animated) WebP: the simple lossy ("VP8 ") or lossless ("VP8L")
+ * format, or the extended format ("VP8X") without the animation flag. These
+ * are redrawn and re-encoded as WebP, which keeps any alpha channel, so the
+ * card looks the same. Collection covers (for example the genre tiles) are
+ * often ~1000 px WebPs drawn at ~410 px; letting the browser scale those cost
+ * 0.4-0.9 s of raster-worker time each on an OLED B2. Animated WebPs would
+ * lose their animation and stay with the <img> tag.
+ */
+export function isStillWebpHeader(bytes) {
+  if (!bytes || bytes.length < 21) {
+    return false;
+  }
+  const tag = (offset) =>
+    String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+  if (tag(0) !== "RIFF" || tag(8) !== "WEBP") {
+    return false;
+  }
+  const chunk = tag(12);
+  if (chunk === "VP8 " || chunk === "VP8L") {
+    return true;
+  }
+  // VP8X flags byte: 0x02 animation.
+  return chunk === "VP8X" && (bytes[20] & 0x02) === 0;
+}
+
 const WORKER_SOURCE = `
 const sourceRect = ${computeSourceRect.toString()};
 const isJpeg = ${isJpegHeader.toString()};
+const isStillWebp = ${isStillWebpHeader.toString()};
 
 self.onmessage = async (event) => {
   const { id, url, width, height, fit } = event.data || {};
@@ -83,9 +111,11 @@ self.onmessage = async (event) => {
     // is newer than OffscreenCanvas, so some webOS builds have the canvas but
     // not the blob method.
     const bytes = await response.arrayBuffer();
-    if (!isJpeg(new Uint8Array(bytes, 0, Math.min(3, bytes.byteLength)))) {
-      // Could carry transparency or animation. Leave it to the <img> tag.
-      throw new Error("not jpeg");
+    const head = new Uint8Array(bytes, 0, Math.min(32, bytes.byteLength));
+    const jpeg = isJpeg(head);
+    if (!jpeg && !isStillWebp(head)) {
+      // Could be animated or carry transparency we cannot re-encode. Leave it to the <img> tag.
+      throw new Error("not jpeg or still webp");
     }
     full = await createImageBitmap(new Blob([bytes]));
     if (full.width <= width && full.height <= height) {
@@ -94,8 +124,9 @@ self.onmessage = async (event) => {
     }
     const crop = sourceRect(full.width, full.height, width, height, fit);
     const canvas = new OffscreenCanvas(width, height);
-    canvas.getContext("2d", { alpha: false }).drawImage(full, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height);
-    const out = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.82 });
+    // WebP keeps its alpha channel: draw on a transparent canvas and encode WebP.
+    canvas.getContext("2d", { alpha: !jpeg }).drawImage(full, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height);
+    const out = await canvas.convertToBlob({ type: jpeg ? "image/jpeg" : "image/webp", quality: 0.82 });
     full.close();
     full = null;
     self.postMessage({ id, ok: true, blob: out });

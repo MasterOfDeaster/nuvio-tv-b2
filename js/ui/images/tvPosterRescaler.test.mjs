@@ -1,7 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { computeSourceRect, isJpegHeader, isRescalableArtworkFit } from "./tvPosterRescaler.js";
+import {
+  computeSourceRect,
+  isJpegHeader,
+  isStillWebpHeader,
+  isRescalableArtworkFit
+} from "./tvPosterRescaler.js";
 import { getTvArtworkPixelRatio } from "../../platform/tvRuntimePerformance.js";
 
 // Every existing crop case is a cover crop; fill has its own cases below.
@@ -131,4 +136,26 @@ test("only JPEG bytes are accepted for re-encoding", () => {
     "a truncated header is not a jpeg"
   );
   assert.equal(isJpegHeader(null), false);
+});
+
+test("only still WebP sources are rescaled", () => {
+  const webp = (chunk, flags = 0) => {
+    const bytes = new Uint8Array(32);
+    const put = (offset, text) =>
+      [...text].forEach((ch, i) => (bytes[offset + i] = ch.charCodeAt(0)));
+    put(0, "RIFF");
+    put(8, "WEBP");
+    put(12, chunk);
+    bytes[20] = flags;
+    return bytes;
+  };
+  assert.equal(isStillWebpHeader(webp("VP8 ")), true);
+  assert.equal(isStillWebpHeader(webp("VP8L")), true);
+  assert.equal(isStillWebpHeader(webp("VP8X", 0x00)), true);
+  assert.equal(isStillWebpHeader(webp("VP8X", 0x10)), true, "alpha is re-encoded as WebP");
+  assert.equal(isStillWebpHeader(webp("VP8X", 0x02)), false, "animation");
+  assert.equal(isStillWebpHeader(webp("VP8X", 0x12)), false, "animation with alpha");
+  assert.equal(isStillWebpHeader(new Uint8Array([0xff, 0xd8, 0xff, 0xe0])), false);
+  assert.equal(isStillWebpHeader(webp("VP8 ").slice(0, 16)), false, "truncated");
+  assert.equal(isStillWebpHeader(null), false);
 });

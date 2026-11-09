@@ -14,7 +14,7 @@ Usage: tools/build-nuvio-b2.py <this repository> <official release ipk> <out dir
 The official release ipk only supplies nuvio.env.js (public service keys), which the
 source tree does not contain.
 """
-import json, os, shutil, subprocess, sys
+import json, os, shutil, subprocess, sys, tarfile
 
 repo, official_ipk, out = (os.path.abspath(a) for a in sys.argv[1:4])
 here = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +23,7 @@ CHROMIUM = '94'
 # Bump for every B2 build of the same upstream version. The app version becomes
 # MAJOR.MINOR.(PATCH*100 + B2_REVISION), e.g. upstream 1.3.9 + revision 2 = 1.3.902,
 # so the Homebrew Channel offers each B2 build as an update.
-B2_REVISION = 2
+B2_REVISION = 3
 work = os.path.join(out, 'work')
 shutil.rmtree(work, ignore_errors=True)
 os.makedirs(work)
@@ -31,7 +31,31 @@ os.makedirs(work)
 
 def run(cmd, **kw):
     print('+', ' '.join(cmd))
+    # npm is npm.cmd on Windows; resolve it so subprocess finds it without a shell.
+    cmd = [shutil.which(cmd[0]) or cmd[0]] + list(cmd[1:])
     subprocess.run(cmd, check=True, **kw)
+
+
+def extract_ipk(ipk, dest):
+    """`ar x` + `tar xzf data.tar.gz -C data`, in Python so it also runs on Windows."""
+    print('+ extract', ipk)
+    with open(ipk, 'rb') as f:
+        if f.read(8) != b'!<arch>\n':
+            raise SystemExit(f'{ipk}: not an ar archive')
+        while True:
+            header = f.read(60)
+            if len(header) < 60:
+                break
+            name = header[:16].decode().strip().rstrip('/')
+            size = int(header[48:58].decode().strip())
+            body = f.read(size)
+            if size % 2:
+                f.read(1)
+            with open(os.path.join(dest, name), 'wb') as out_file:
+                out_file.write(body)
+    os.makedirs(os.path.join(dest, 'data'))
+    with tarfile.open(os.path.join(dest, 'data.tar.gz')) as tar:
+        tar.extractall(os.path.join(dest, 'data'))
 
 
 # 1. Source patch + build
@@ -49,9 +73,7 @@ run(['npm', 'run', 'build'], cwd=repo, env=env)
 # 2. Public service keys from the official release
 ex = os.path.join(work, 'official')
 os.makedirs(ex)
-run(['ar', 'x', official_ipk], cwd=ex)
-os.makedirs(os.path.join(ex, 'data'))
-run(['tar', 'xzf', 'data.tar.gz', '-C', 'data'], cwd=ex)
+extract_ipk(official_ipk, ex)
 shutil.copy(os.path.join(ex, 'data/usr/palm/applications', OLD, 'nuvio.env.js'),
             os.path.join(repo, 'dist', 'nuvio.env.js'))
 
@@ -63,9 +85,7 @@ built = os.path.join(repo, f'{OLD}_{version}_all.ipk')
 # 4. Re-id as a separate app
 src = os.path.join(work, 'built')
 os.makedirs(src)
-run(['ar', 'x', built], cwd=src)
-os.makedirs(os.path.join(src, 'data'))
-run(['tar', 'xzf', 'data.tar.gz', '-C', 'data'], cwd=src)
+extract_ipk(built, src)
 data = os.path.join(src, 'data')
 stage = os.path.join(work, 'stage')
 os.makedirs(stage)
@@ -101,7 +121,7 @@ with open(os.path.join(app_dst, 'NUVIO-B2-NOTICE.txt'), 'w') as f:
             'https://github.com/NuvioMedia/NuvioTVSmart), tuned for LG OLED B2 / webOS TV 23. '
             'Source: https://github.com/MasterOfDeaster/nuvio-tv-b2\n')
 
-ares = os.path.realpath(os.path.join(repo, 'node_modules', '.bin', 'ares-package'))
+ares = os.path.join(repo, 'node_modules', '@webos-tools', 'cli', 'bin', 'ares-package.js')
 compat = os.path.join(repo, 'scripts', 'node24-ares-compat.cjs')
 run(['node', '--require', compat, ares, app_dst] + [os.path.join(stage, s) for s in services] + ['-o', out])
 print('OK:', [f for f in os.listdir(out) if f.endswith('.ipk')])
