@@ -12,7 +12,7 @@ Im Homebrew Channel unter _Einstellungen → Repositories_ diese Adresse hinzuf�
 https://raw.githubusercontent.com/MasterOfDeaster/nuvio-tv-b2/main/webosbrew/apps.json
 ```
 
-Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.905_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.905_all.ipk)
+Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.906_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.906_all.ipk)
 
 ## Was anders ist
 
@@ -40,7 +40,7 @@ Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.905_all.ip
     Untertitel-Dialog reagiert schneller.
 - **Großes IMDb-Badge auf den Postern (1.3.904):** Nuvio zeichnet die IMDb-Wertung selbst
   (scharfer Text, etwa doppelt so groß wie eingebrannte Rating-Poster). Poster von
-  Rating-Diensten (AIORatings, RPDB, Top-Posters) mit IMDb-ID werden durch das normale Poster
+  Rating-Diensten (AIORatings, RPDB, Top-Posters, Xperience-Poster-Proxy) mit IMDb-ID werden durch das normale Poster
   aus dem Stremio-Posterarchiv ersetzt, damit keine drei kleinen Wertungen mehr im Bild stehen.
   Die IMDb-Wertung aus den Katalogen wird dafür nicht mehr verworfen.
 - **Aufgeräumte Streamliste (1.3.905):** Jede Karte zeigt nur noch ⚡ (gecacht) mit Quelle und

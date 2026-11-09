@@ -4,14 +4,20 @@
 // rated poster addressed by IMDb id is swapped for the plain poster from the
 // Stremio poster archive. 300x450 covers the 221x339 card at one device pixel
 // per CSS pixel. Posters addressed by TMDB/TVDB ids stay untouched.
-const RATING_POSTER_IMDB_PATTERN =
-  /^https?:\/\/(?:[a-z0-9-]+\.)*(?:aioratings\.com|ratingposterdb\.com|top-posters\.com)\/[^/]+\/imdb\/poster-[a-z0-9-]+\/(tt\d{5,10})\.(?:jpe?g|png|webp)(?:[?#].*)?$/i;
+const RATING_POSTER_IMDB_PATTERNS = [
+  /^https?:\/\/(?:[a-z0-9-]+\.)*(?:aioratings\.com|ratingposterdb\.com|top-posters\.com)\/[^/]+\/imdb\/poster-[a-z0-9-]+\/(tt\d{5,10})\.(?:jpe?g|png|webp)(?:[?#].*)?$/i,
+  // Xperience's poster proxy (…/manifest/<id>/<token>/poster/<type>/<imdb>.jpg)
+  // answers with a 302 to the account's rating-poster service.
+  /^https?:\/\/(?:[a-z0-9-]+\.)*xperience-app\.com\/manifest\/[^?#]+\/poster\/(?:movie|series|tv)\/(tt\d{5,10})\.(?:jpe?g|png|webp)(?:[?#].*)?$/i
+];
 
 export function plainPosterForRatingPoster(url) {
   const value = String(url || "").trim();
-  const match = RATING_POSTER_IMDB_PATTERN.exec(value);
-  if (!match) {
-    return value;
+  for (const pattern of RATING_POSTER_IMDB_PATTERNS) {
+    const match = pattern.exec(value);
+    if (match) {
+      return `https://images.metahub.space/poster/small/${match[1]}/img`;
+    }
   }
-  return `https://images.metahub.space/poster/small/${match[1]}/img`;
+  return value;
 }
