@@ -35,6 +35,8 @@ function cardStubs(onRead) {
     buildPosterSubtitle: () => "",
     normalizeTmdbBackdropUrl: (value) => value,
     normalizeTmdbCardBackdropUrl: (value) => value,
+    renderPosterImdbBadge: () => "",
+    plainPosterForRatingPoster: (value) => value,
     normalizeTmdbPosterUrl: (value) => value,
     isTitleItemWatched: () => false,
     renderTitleWatchedBadge: () => "",

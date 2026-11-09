@@ -193,7 +193,31 @@ import { isCollectionFolderItem, normalizeCollectionPosterShape } from "./homeSc
 import { buildPosterSubtitle } from "./homeScreenHelpers-12-build-hero-indicators.js";
 import { buildLazyImageAttributes } from "./homeScreenHelpers-14-get-home-grid-column-count.js";
 import { normalizeCatalogItem } from "./homeScreenHelpers-08-partition-continue-watching-rows.js";
+import { resolveImdbRating } from "./homeScreenHelpers-01-modern-sidebar-pill-auto-collapse-ms.js";
+import { plainPosterForRatingPoster } from "../../../core/poster/ratingPosterFallback.js";
 import { normalizeTmdbBackdropUrl, normalizeTmdbCardBackdropUrl, normalizeTmdbPosterUrl } from "../../../core/tmdb/tmdbImageUrl.js";
+
+// Rating-poster services bake their own badges into the artwork; a second
+// badge on top of those would show the score twice.
+const RATING_POSTER_HOST_PATTERN = /(?:^|\/\/|\.)(?:aioratings\.com|ratingposterdb\.com|top-posters\.com|btttr\.cc)\//i;
+
+/**
+ * One large IMDb badge drawn by the app instead of baked into the artwork, so
+ * it stays sharp and readable from the sofa (Nuvio TV B2).
+ */
+export function renderPosterImdbBadge(item, posterSrc = "", settings = null) {
+  if (!showHomeRatings(settings?.homeImdbRatingsVisibility)) {
+    return "";
+  }
+  if (RATING_POSTER_HOST_PATTERN.test(String(posterSrc || ""))) {
+    return "";
+  }
+  const rating = resolveImdbRating(item);
+  if (!rating) {
+    return "";
+  }
+  return `<span class="home-poster-imdb-badge" aria-label="IMDb ${escapeAttribute(rating)}"><span class="home-poster-imdb-logo" aria-hidden="true">IMDb</span><span class="home-poster-imdb-value">${escapeHtml(rating)}</span></span>`;
+}
 
 export function createPosterCardMarkup(
   item,
@@ -321,7 +345,9 @@ export function createPosterCardMarkup(
   const backdropSrc = normalizeTmdbBackdropUrl(rawBackdropSrc);
   // data-backdrop-src keeps the hero-sized backdrop; the landscape card itself
   // only needs a card-sized source.
-  const posterSrc = useLandscapePoster ? normalizeTmdbCardBackdropUrl(rawBackdropSrc) : normalizeTmdbPosterUrl(rawPosterSrc);
+  const posterSrc = useLandscapePoster
+    ? normalizeTmdbCardBackdropUrl(rawBackdropSrc)
+    : normalizeTmdbPosterUrl(plainPosterForRatingPoster(rawPosterSrc));
   const expandedVisualSrc = firstNonEmpty(backdropSrc, posterSrc);
   const expandedClass = isExpanded ? " is-expanded" : "";
   const landscapeClass = useLandscapePoster ? " is-landscape" : "";
@@ -330,6 +356,7 @@ export function createPosterCardMarkup(
   const loadingClass = isLoading ? " home-poster-card-loading" : "";
   const shouldShowLabels = showLabels && !isLoading && !suppressPosterText;
   const watchedBadge = !isLoading && isTitleItemWatched(normalized, watchedTitleIds) ? renderTitleWatchedBadge() : "";
+  const imdbBadge = isLoading ? "" : renderPosterImdbBadge(normalized, posterSrc, cardSettings);
   const titleWidths = [116, 128, 104, 132, 120, 140, 110, 124, 136, 112];
   const subtitleWidths = [82, 96, 74, 90, 88, 100, 80, 94, 86, 92];
   const safeIndex = Math.max(0, Number(itemIndex) || 0);
@@ -377,6 +404,7 @@ export function createPosterCardMarkup(
         <div class="home-poster-trailer-layer"></div>
         <div class="home-poster-expanded-gradient"></div>
         ${watchedBadge}
+        ${imdbBadge}
         <div class="home-poster-expanded-brand">
           ${
             !isLoading && normalized.logo

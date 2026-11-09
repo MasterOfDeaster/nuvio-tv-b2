@@ -429,3 +429,38 @@
   padding-left: calc(var(--home-content-start) + var(--modern-track-peek-extension));
   padding-right: var(--home-track-end);
 }
+
+/* Nuvio TV B2: one large IMDb badge drawn by the app (sharp text instead of a
+   rating baked into the artwork, readable from the sofa). Flat colours only:
+   no blur, shadow or transform, so it adds no compositor layer. */
+.home-poster-imdb-badge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.home-poster-imdb-logo {
+  padding: 5px 7px 4px;
+  border-radius: 6px;
+  background: #f5c518;
+  color: #000;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.home-poster-card.is-expanded .home-poster-imdb-badge {
+  display: none;
+}

@@ -202,7 +202,10 @@ class CatalogRepository {
       description: meta.description || "",
       releaseInfo: meta.releaseInfo || "",
       runtime: meta.runtime ?? null,
-      genres: Array.isArray(meta.genres) ? meta.genres : []
+      genres: Array.isArray(meta.genres) ? meta.genres : [],
+      // Catalog addons (Cinemeta, Xperience, AIOMetadata, ...) send the IMDb
+      // score with the preview; the poster badge on Home needs it.
+      imdbRating: meta.imdbRating ?? meta.imdb_rating ?? null
     };
   }
 }
