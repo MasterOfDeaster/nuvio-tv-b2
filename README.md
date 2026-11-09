@@ -12,7 +12,7 @@ Im Homebrew Channel unter _Einstellungen → Repositories_ diese Adresse hinzuf�
 https://raw.githubusercontent.com/MasterOfDeaster/nuvio-tv-b2/main/webosbrew/apps.json
 ```
 
-Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.904_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.904_all.ipk)
+Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.905_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.905_all.ipk)
 
 ## Was anders ist
 
@@ -43,6 +43,10 @@ Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.904_all.ip
   Rating-Diensten (AIORatings, RPDB, Top-Posters) mit IMDb-ID werden durch das normale Poster
   aus dem Stremio-Posterarchiv ersetzt, damit keine drei kleinen Wertungen mehr im Bild stehen.
   Die IMDb-Wertung aus den Katalogen wird dafür nicht mehr verworfen.
+- **Aufgeräumte Streamliste (1.3.905):** Jede Karte zeigt nur noch ⚡ (gecacht) mit Quelle und
+  Release-Gruppe, rechts die Dateigröße als Button und darunter die Bild-/Ton-Buttons. Titel,
+  Sterne, Auflösung, Remux/WEB-DL und die Symbolzeilen des Addon-Formatters werden nicht mehr
+  wiederholt. Streams ohne Dateinamen und Cache-Markierung behalten die ausführliche Karte.
 - **Für Chromium 94 übersetzt** statt für Chromium 56 (Haupt-Bundle 3,73 → 3,48 MB,
   Polyfills 153 → 100 KB). Ältere Fernseher bekommen beim Start eine Meldung.
 

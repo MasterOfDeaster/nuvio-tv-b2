@@ -23,6 +23,8 @@ export function createStreamScreenMethods08() {
     getAddonBadgeLabel,
     getStreamHeadline,
     getStreamDescriptionLines,
+    getCompactStreamSummary,
+    formatBytes,
     renderStreamBadges,
     hasStreamBadges,
     resolveStreamBadgePlacement
@@ -198,7 +200,8 @@ export function createStreamScreenMethods08() {
       badgeSettings = null,
       { streamKey = index, virtualized = false, virtualRowGap = null, virtualLast = false, previousStream = null } = {}
     ) {
-      const headline = getStreamHeadline(stream);
+      const compact = getCompactStreamSummary(stream);
+      const headline = compact ? compact.label : getStreamHeadline(stream);
       const providerHeader = streamProviderHeader(stream, previousStream);
       const partyShared = Boolean(stream.partyShared);
       const partySource = !partyShared && Boolean(this.isPartySourceStream?.(stream));
@@ -211,7 +214,20 @@ export function createStreamScreenMethods08() {
       const topBadges = badgePlacement === "TOP" ? badges : "";
       const bottomBadges = badgePlacement === "BOTTOM" ? badges : "";
       // Filename punctuation needs wrap opportunities to avoid an icon-only first line.
-      const descriptionLines = getStreamDescriptionLines(stream);
+      const descriptionLines = compact ? [] : getStreamDescriptionLines(stream);
+      const cacheMark =
+        compact?.cached === true
+          ? `<span class="stream-route-cache-mark is-cached" aria-label="${escapeHtml(t("stream_cached", {}, "Cached"))}">⚡</span>`
+          : compact?.cached === false
+            ? `<span class="stream-route-cache-mark is-uncached" aria-label="${escapeHtml(t("stream_uncached", {}, "Not cached"))}">⏳</span>`
+            : "";
+      // The size sits in the heading so the marquee of a focused badge row
+      // never scrolls it away.
+      const sizeBytes = stream.behaviorHints?.videoSize;
+      const sizeChip =
+        compact && sizeBytes != null
+          ? `<span class="stream-route-stream-badge size stream-route-heading-size">${escapeHtml(formatBytes(sizeBytes))}</span>`
+          : "";
       let addonIdentity = "";
       if (showAddonLogo) {
         const addonLogoUrl = normalizeAddonLogoUrl(stream.addonLogo) || resolveAddonLogo(stream.addonName, this.addonLogoLookup);
@@ -254,7 +270,7 @@ export function createStreamScreenMethods08() {
                      data-stream-row="${index}">
               <div class="stream-route-card-copy">
                 ${topBadges || ""}
-                <div class="stream-route-card-heading" dir="${contentTextDirection(headline)}">${escapeHtml(headline)}</div>
+                <div class="stream-route-card-heading${compact ? " is-compact" : ""}" dir="${contentTextDirection(headline)}">${cacheMark}${compact ? `<span class="stream-route-heading-label">${escapeHtml(headline)}</span>` : escapeHtml(headline)}${sizeChip}</div>
                 ${partySource ? `<div class="stream-route-party-source" dir="auto">${escapeHtml(t("party_source", {}, "Party's source"))}</div>` : ""}
                 ${descriptionLines.map((line, lineIndex) => `<div class="stream-route-card-line${lineIndex > 0 ? " secondary" : ""}" dir="${contentTextDirection(line)}">${escapeHtml(line).replace(/([._-])(?=\S)/g, "$1<wbr>")}</div>`).join("")}
                 ${bottomBadges || ""}

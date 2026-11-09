@@ -86,6 +86,7 @@ import {
 import { isStreamEmptyStateVisible } from "./streamEmptyState.js";
 
 import { escapeHtml, STREAM_BADGE_LIMIT, t, formatBytes } from "./streamScreenHelpers-01-stream-badge-limit.js";
+import { getCompactStreamSummary } from "./streamScreenHelpers-02-flatten-streams.js";
 
 export function renderImageBadgeChip(badge = {}) {
   const imageUrl = normalizeAddonLogoUrl(badge.imageURL);
@@ -125,6 +126,7 @@ export function renderImageBadgeChip(badge = {}) {
 
 export function renderImportedStreamBadgeChipContents(stream = {}, badges = [], showFileSizeBadges = true) {
   const sizeBytes = stream.behaviorHints?.videoSize;
+  const compact = getCompactStreamSummary(stream) != null;
   const chips = [];
   badges.slice(0, STREAM_BADGE_LIMIT).forEach((badge) => {
     const chip = renderImageBadgeChip(badge);
@@ -132,7 +134,8 @@ export function renderImportedStreamBadgeChipContents(stream = {}, badges = [], 
       chips.push(chip);
     }
   });
-  if (showFileSizeBadges && sizeBytes != null) {
+  // Compact cards (Nuvio TV B2) show the size in their heading instead.
+  if (!compact && showFileSizeBadges && sizeBytes != null) {
     chips.push(
       `<span class="stream-route-stream-badge size">${escapeHtml(t("streams_size", [formatBytes(sizeBytes)], `SIZE ${formatBytes(sizeBytes)}`))}</span>`
     );
@@ -161,7 +164,11 @@ export function hasStreamBadges(stream = {}, enabled = true, badgeSettings = nul
     return false;
   }
   const currentBadgeSettings = badgeSettings || StreamBadgeSettingsStore.snapshot();
-  if (currentBadgeSettings.showFileSizeBadges !== false && stream.behaviorHints?.videoSize != null) {
+  if (
+    currentBadgeSettings.showFileSizeBadges !== false &&
+    stream.behaviorHints?.videoSize != null &&
+    getCompactStreamSummary(stream) == null
+  ) {
     return true;
   }
   return matchStreamBadges(stream, currentBadgeSettings.rules).some((badge) => normalizeAddonLogoUrl(badge.imageURL));

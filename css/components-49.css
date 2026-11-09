@@ -464,3 +464,48 @@
 .home-poster-card.is-expanded .home-poster-imdb-badge {
   display: none;
 }
+
+/* Nuvio TV B2: compact stream cards. One line (cache mark + source · release
+   group) above the badge row; the size chip ends the badge row. */
+.stream-route-card-heading.is-compact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 30px;
+  line-height: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stream-route-cache-mark {
+  flex: none;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.stream-route-cache-mark.is-cached {
+  color: #f5c518;
+}
+
+.stream-route-cache-mark.is-uncached {
+  color: #9aa0a6;
+}
+
+.stream-route-card-heading.is-compact + .stream-route-card-badges,
+.stream-route-card-heading.is-compact ~ .stream-route-card-badges {
+  margin-top: 14px;
+}
+
+.stream-route-heading-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stream-route-stream-badge.size.stream-route-heading-size {
+  flex: none;
+  margin-left: auto;
+}

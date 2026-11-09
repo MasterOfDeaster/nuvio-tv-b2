@@ -7,7 +7,7 @@ import { streamProviderHeader } from "../js/core/streams/streamOrdering.js";
 const files = [
   [
     "stream/streamScreenHelpers-02-flatten-streams.js",
-    "getStreamHeadline, getStreamDescriptionLines"
+    "getStreamHeadline, getStreamDescriptionLines, getCompactStreamSummary"
   ],
   [
     "detail/metaDetailsScreenMethods-10-get-episode-card-presentation.js",
@@ -123,6 +123,7 @@ vm.runInContext(bundle.outputFiles[0].text, context);
 const api = context.subject;
 fixtures.getStreamHeadline = api.getStreamHeadline;
 fixtures.getStreamDescriptionLines = api.getStreamDescriptionLines;
+fixtures.getCompactStreamSummary = api.getCompactStreamSummary;
 for (const webos of [false, true]) {
   fixtures.Environment.isWebOS = () => webos;
   for (const newline of ["\n", "\r\n"]) {
@@ -427,7 +428,12 @@ const multilineMarkup = renderCard.call(
   {},
   { virtualized: true, virtualRowGap: 40 }
 );
-assert.ok(multilineMarkup.includes('dir="ltr">4K ⚡\n&lt;Web-dl>\n★★★★★</div>'));
+// Nuvio TV B2: a cached addon stream renders as a compact card (cache mark +
+// identifying line); resolution, quality tier and stars live in the badges.
+assert.ok(multilineMarkup.includes("stream-route-card-heading is-compact"));
+assert.ok(multilineMarkup.includes('class="stream-route-cache-mark is-cached"'));
+assert.ok(!multilineMarkup.includes("★★★★★"), "stars are not repeated in the card text");
+assert.ok(!multilineMarkup.includes("Web-dl"), "quality tier is not repeated in the card text");
 assert.ok(multilineMarkup.includes('style="margin-bottom:40px"'));
 assert.ok(multilineMarkup.includes('data-action="playStream"'));
 

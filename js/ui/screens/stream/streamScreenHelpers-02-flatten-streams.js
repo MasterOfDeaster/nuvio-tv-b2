@@ -286,3 +286,43 @@ export function getStreamDescriptionLines(stream = {}) {
     .map((line) => line.trim())
     .filter(Boolean);
 }
+
+// Nuvio TV B2: compact stream cards. Addon formatters (AIOStreams and friends)
+// repeat the title, resolution, quality tier, codec, audio and stars in the
+// card text although the badge row already shows them. A compact card keeps
+// the cache state and one identifying line (source indexer + release group);
+// everything else lives in the badges, plus a plain size chip.
+const STREAM_CACHED_PATTERN = /⚡/;
+const STREAM_UNCACHED_PATTERN = /⏳|⬇|\buncached\b/i;
+const STREAM_SOURCE_PATTERN = /\[(?:TB|RD|AD|PM|DL|OC|ED|EN|PP|DB)\+?\]\s*([^·|\n]+)/i;
+
+export function getStreamFilename(stream = {}) {
+  return String(stream?.behaviorHints?.filename || stream?.raw?.filename || "").trim();
+}
+
+export function getStreamReleaseGroup(filename = "") {
+  const base = String(filename || "")
+    .trim()
+    .replace(/\.[a-z0-9]{2,4}$/i, "")
+    .replace(/\s*[[(][^\])]*[\])]\s*$/, "");
+  const match = base.match(/-([A-Za-z0-9][A-Za-z0-9_]{1,24})$/);
+  return match ? match[1] : "";
+}
+
+/**
+ * { cached: true|false|null, label } for a compact card, or null when the
+ * stream carries neither a filename nor a cache marker (keep the full card).
+ */
+export function getCompactStreamSummary(stream = {}) {
+  const text = [stream?.name, stream?.description, stream?.title].filter(Boolean).join("\n");
+  const filename = getStreamFilename(stream);
+  const cached = STREAM_CACHED_PATTERN.test(text) ? true : STREAM_UNCACHED_PATTERN.test(text) ? false : null;
+  if (!filename && cached === null) {
+    return null;
+  }
+  const source = String(text.match(STREAM_SOURCE_PATTERN)?.[1] || "").trim();
+  const group = getStreamReleaseGroup(filename);
+  const parts = [...new Set([source, group].filter(Boolean))];
+  const label = parts.length ? parts.join(" · ") : String(stream?.addonName || "").trim();
+  return { cached, label };
+}
