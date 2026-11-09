@@ -673,7 +673,12 @@ export const CollectionEditorScreen = {
             <div class="collections-source-copy">
               <h3>${escapeHtml(sourceLabel(source))}</h3>
               <p>${escapeHtml(sourceSubtitle(source))}${
-                isAddon && source.genre ? ` · ${escapeHtml(source.genre)}` : ""
+                // "None" is Xperience's stored "no genre" value; it is not shown.
+                isAddon &&
+                source.genre &&
+                !/^\s*(none|null|undefined)\s*$/i.test(String(source.genre))
+                  ? ` · ${escapeHtml(source.genre)}`
+                  : ""
               }${
                 isAddon &&
                 source.addonId &&

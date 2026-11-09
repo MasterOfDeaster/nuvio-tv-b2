@@ -12,7 +12,7 @@ Im Homebrew Channel unter _Einstellungen → Repositories_ diese Adresse hinzuf�
 https://raw.githubusercontent.com/MasterOfDeaster/nuvio-tv-b2/main/webosbrew/apps.json
 ```
 
-Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.906_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.906_all.ipk)
+Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.907_all.ipk`](webosbrew/space.nuvio.webosb2_1.3.907_all.ipk)
 
 ## Was anders ist
 
@@ -47,6 +47,9 @@ Oder die IPK direkt installieren: [`webosbrew/space.nuvio.webosb2_1.3.906_all.ip
   Release-Gruppe, rechts die Dateigröße als Button und darunter die Bild-/Ton-Buttons. Titel,
   Sterne, Auflösung, Remux/WEB-DL und die Symbolzeilen des Addon-Formatters werden nicht mehr
   wiederholt. Streams ohne Dateinamen und Cache-Markierung behalten die ausführliche Karte.
+- **Ordner- und Reihentitel ohne „None“ (1.3.907):** Sammlungen aus Xperience speichern „kein
+  Genre“ als Wert „None“. Der wird weiter an das Addon geschickt, aber nicht mehr im Titel angezeigt
+  („Netflix - Film“ statt „Netflix · None - Film“).
 - **Für Chromium 94 übersetzt** statt für Chromium 56 (Haupt-Bundle 3,73 → 3,48 MB,
   Polyfills 153 → 100 KB). Ältere Fernseher bekommen beim Start eine Meldung.
 

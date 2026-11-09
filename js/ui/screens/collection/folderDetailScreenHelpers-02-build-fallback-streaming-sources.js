@@ -124,7 +124,15 @@ export function buildAddonTabLabel(source = {}, addons = []) {
       (entry) => String(entry?.id || "") === String(source.catalogId || "") && String(entry?.apiType || "") === String(source.type || "")
     ) || null;
   const baseName = firstNonEmpty(catalog?.name, source.catalogName, source.title, source.catalogId || source.type || "Catalog");
-  return source.genre ? `${baseName} · ${source.genre}` : baseName;
+  return isDisplayableCatalogGenre(source.genre) ? `${baseName} · ${String(source.genre).trim()}` : baseName;
+}
+
+// Collections built with Xperience store the "no genre" choice as the literal
+// value "None"; it is still sent to the addon as the catalog extra, but a
+// title like "Netflix · None - Movie" only adds noise (Nuvio TV B2).
+export function isDisplayableCatalogGenre(genre) {
+  const value = String(genre ?? "").trim();
+  return Boolean(value) && !/^(none|null|undefined)$/i.test(value);
 }
 
 export function sameAddonUrl(left = "", right = "") {

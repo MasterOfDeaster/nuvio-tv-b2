@@ -23,7 +23,7 @@ CHROMIUM = '94'
 # Bump for every B2 build of the same upstream version. The app version becomes
 # MAJOR.MINOR.(PATCH*100 + B2_REVISION), e.g. upstream 1.3.9 + revision 2 = 1.3.902,
 # so the Homebrew Channel offers each B2 build as an update.
-B2_REVISION = 6
+B2_REVISION = 7
 work = os.path.join(out, 'work')
 shutil.rmtree(work, ignore_errors=True)
 os.makedirs(work)
